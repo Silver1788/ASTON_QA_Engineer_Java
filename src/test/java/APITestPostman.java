@@ -8,6 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
 import org.json.JSONObject;
 
@@ -17,7 +18,7 @@ public class APITestPostman {
     @Test
     public void testGetRequest() {
         // Отправка GET-запроса
-        Response response = RestAssured.given()
+        Response response = given()
                 .baseUri("https://postman-echo.com")
                 .when()
                 .get("/get?foo1=bar1&foo2=bar2");
@@ -76,30 +77,22 @@ public class APITestPostman {
 
     @DisplayName("POST Form Data")
     @Test
-    public void testPostFormData() throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
-        String requestBody = "foo1=bar1&foo2=bar2";
+    public void testPostFormData(){
+        Response response = given()
+                .contentType("application/x-www-form-urlencoded")
+                .formParam("foo1", "bar1")
+                .formParam("foo2", "bar2")
+                .when()
+                .post("https://postman-echo.com/post")
+                .then()
+                .statusCode(200)
+                .extract()
+                .response();
 
-        // Создание POST-запроса с application/x-www-form-urlencoded
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("https://postman-echo.com/post"))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
+        JSONObject jsonResponse = new JSONObject(response.getBody().asString());
 
-        // Отправка запроса и получение ответа
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        // Проверка кода ответа
-        assertEquals(200, response.statusCode(), "Expected status code 200");
-
-        // Парсим JSON-ответ
-        JSONObject jsonResponse = new JSONObject(response.body());
-
-        // Проверяем, что в ответе есть объект "form"
         assertTrue(jsonResponse.has("form"), "Response does not contain 'form' field");
 
-        // Проверяем, что поля foo1 и foo2 содержат ожидаемые данные
         JSONObject form = jsonResponse.getJSONObject("form");
         assertEquals("bar1", form.getString("foo1"), "foo1 value mismatch");
         assertEquals("bar2", form.getString("foo2"), "foo2 value mismatch");
@@ -108,58 +101,42 @@ public class APITestPostman {
     @DisplayName("PUT Request")
     @Test
     public void testPutRequest() throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
         String requestBody = "This is expected to be sent back as part of response body.";
 
-        // Создание PUT-запроса
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("https://postman-echo.com/put"))
-                .header("Content-Type", "text/plain")
-                .PUT(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
+        Response response = given()
+                .contentType("text/plain")
+                .body(requestBody)
+                .when()
+                .put("https://postman-echo.com/put")
+                .then()
+                .statusCode(200)
+                .extract()
+                .response();
 
-        // Отправка запроса и получение ответа
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        JSONObject jsonResponse = new JSONObject(response.getBody().asString());
 
-        // Проверка кода ответа
-        assertEquals(200, response.statusCode(), "Expected status code 200");
-
-        // Парсим JSON-ответ
-        JSONObject jsonResponse = new JSONObject(response.body());
-
-        // Проверяем, что в ответе есть поле "data"
         assertTrue(jsonResponse.has("data"), "Response does not contain 'data' field");
-
-        // Проверяем, что тело ответа содержит ожидаемые данные
         assertEquals(requestBody, jsonResponse.getString("data"), "Unexpected response body data");
     }
 
     @DisplayName("PATCH Request")
     @Test
     public void testPatchRequest() throws Exception  {
-        HttpClient client = HttpClient.newHttpClient();
         String requestBody = "This is expected to be sent back as part of response body.";
 
-        // Создание PATCH-запроса
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("https://postman-echo.com/patch"))
-                .header("Content-Type", "text/plain")
-                .method("PATCH", HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
+        Response response = given()
+                .contentType("text/plain")
+                .body(requestBody)
+                .when()
+                .patch("https://postman-echo.com/patch")
+                .then()
+                .statusCode(200)
+                .extract()
+                .response();
 
-        // Отправка запроса и получение ответа
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        JSONObject jsonResponse = new JSONObject(response.getBody().asString());
 
-        // Проверка кода ответа
-        assertEquals(200, response.statusCode(), "Expected status code 200");
-
-        // Парсим JSON-ответ
-        JSONObject jsonResponse = new JSONObject(response.body());
-
-        // Проверяем, что в ответе есть поле "data"
         assertTrue(jsonResponse.has("data"), "Response does not contain 'data' field");
-
-        // Проверяем, что тело ответа содержит ожидаемые данные
         assertEquals(requestBody, jsonResponse.getString("data"), "Unexpected response body data");
     }
 
@@ -168,8 +145,8 @@ public class APITestPostman {
     public void testDeleteRequest() {
         String requestBody = "This is expected to be sent back as part of response body.";
 
-        Response response = RestAssured.given()
-                .header("Content-Type", "text/plain")
+        Response response = given()
+                .contentType("text/plain")
                 .body(requestBody)
                 .when()
                 .delete("https://postman-echo.com/delete")
@@ -184,3 +161,4 @@ public class APITestPostman {
         assertEquals(requestBody, jsonResponse.getString("data"), "Unexpected response body data");
     }
 }
+
