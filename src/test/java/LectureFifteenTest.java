@@ -1,3 +1,4 @@
+import io.qameta.allure.*;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,6 +11,8 @@ import java.util.Map;
 import java.util.HashMap;
 
 // Перевести ранее написанный тест на использование паттерна PageObject
+@Epic("MTS BY UI Tests")
+@Feature("Оплата услуг")
 public class LectureFifteenTest {
     private WebDriver driver;
     private WebDriverWait wait;
@@ -21,6 +24,7 @@ public class LectureFifteenTest {
     }
 
     @BeforeEach
+    @Step("Открываем браузер и загружаем главную страницу")
     void setUp() {
         driver = new ChromeDriver();
         wait = new WebDriverWait(driver, 20);
@@ -41,6 +45,9 @@ public class LectureFifteenTest {
     }
 
     @Test
+    @Story("Проверка заголовка блока")
+    @Description("Тест проверяет корректность заголовка блока оплаты")
+    @Severity(SeverityLevel.CRITICAL)
     void testBlockTitle() {
         String expectedTitle = "Онлайн пополнение\nбез комиссии";
         String actualTitle = homePage.getBlockTitle();
@@ -48,6 +55,9 @@ public class LectureFifteenTest {
     }
 
     @Test
+    @Story("Проверка логотипов платежных систем")
+    @Description("Проверяем наличие всех логотипов платежных систем")
+    @Severity(SeverityLevel.NORMAL)
     void testPaymentSystemLogos() {
         String[] expectedLogos = {
                 "Visa", "Verified By Visa", "MasterCard", "MasterCard Secure Code", "Белкарт"
@@ -58,6 +68,9 @@ public class LectureFifteenTest {
     }
 
     @Test
+    @Story("Проверка ссылки 'Подробнее о сервисе'")
+    @Description("Кликаем на ссылку 'Подробнее' и проверяем URL")
+    @Severity(SeverityLevel.NORMAL)
     void testMoreInfoLink() {
         homePage.clickMoreInfoLink();
         String expectedUrl = "https://www.mts.by/help/poryadok-oplaty-i-bezopasnost-internet-platezhey/";
@@ -66,12 +79,18 @@ public class LectureFifteenTest {
     }
 
     @Test
+    @Story("Заполнение формы оплаты")
+    @Description("Заполняем форму и проверяем корректность введенных данных")
+    @Severity(SeverityLevel.CRITICAL)
     void testPaymentForm() {
         homePage.fillPaymentForm("297777777", "10", "test@example.com");
     }
 
      // 1. Проверить надписи в незаполненных полях каждого варианта оплаты услуг: услуги связи, домашний интернет, рассрочка, задолженность;
-    @Test
+     @Test
+     @Story("Проверка плейсхолдеров в полях оплаты")
+     @Description("Проверяем соответствие плейсхолдеров для всех вариантов оплаты")
+     @Severity(SeverityLevel.MINOR)
     void testDropdownOptions() {
         // Ожидаемые значения: id → placeholder
         Map<String, String> expectedFields = new HashMap<>();
@@ -105,6 +124,7 @@ public class LectureFifteenTest {
     }
 
     @AfterEach
+    @Step("Закрываем браузер")
     void tearDown() {
         if (driver != null) {
             driver.quit();
